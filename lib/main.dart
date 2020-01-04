@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'check_update.dart';
 
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -45,6 +47,44 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // 检查更新
+    CheckUpdate().check(showInstallUpdateDialog);
+  }
+
+  // 弹窗确认是否安装更新
+  Future<bool> showInstallUpdateDialog() {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("检测到新版本"),
+          content: Text("已准备好更新，确认安装新版本?"),
+          actions: <Widget>[
+            FlatButton(
+              child: Text(
+                "取消",
+                style: TextStyle(color: Color(0xff999999)),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              } // 关闭对话框
+            ),
+            FlatButton(
+              child: Text("确认"),
+              onPressed: () {
+                //关闭对话框并返回true
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   void _incrementCounter() {
     setState(() {
