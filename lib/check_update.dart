@@ -27,20 +27,23 @@ class CheckUpdate {
   static String _downloadPath = '';
   static String _filename = 'YOUR_APP.apk';
   static String _taskId = '';
-  static Function _showDialog;
 
   check(Function showDialog) async {
-    _showDialog = showDialog;
     bool hasNewVersion = await _checkVersion();
-    if(hasNewVersion) {
-      // 判断系统，ios跳转app store，安卓下载新的apk
-      if(Platform.isIOS) {
-        // 跳转app store
-      } else if( Platform.isAndroid) {
-        await _prepareDownload();
-        if(_downloadPath.isNotEmpty) {
-          await download();
-        }
+    if(!hasNewVersion) {
+      return;
+    }
+    bool confirm = await showDialog();
+    if(!confirm) {
+      return;
+    }
+    // 判断系统，ios跳转app store，安卓下载新的apk
+    if(Platform.isIOS) {
+      // 跳转app store
+    } else if( Platform.isAndroid) {
+      await _prepareDownload();
+      if(_downloadPath.isNotEmpty) {
+        await download();
       }
     }
   }
@@ -66,14 +69,16 @@ class CheckUpdate {
 
   // 检查版本
   Future<bool> _checkVersion() async {
-    var res = await Dio().get('${Constants.asset_path}/dare_devil/version.json').catchError((e) {
+    // 使用请求库dio读取文件服务器存有版本号的json文件
+    var res = await Dio().get('YOUR_HOST/version.json').catchError((e) {
       print('获取版本号失败----------' + e);
     });
     if(res.statusCode == 200) {
+      // 解析json字符串
       AppInfo appInfo = AppInfo.fromJson(res.data);
-
+      // 获取 PackageInfo class
       PackageInfo packageInfo = await PackageInfo.fromPlatform();
-      print('version------------------------${packageInfo.version} ${appInfo.version} ${packageInfo.version.hashCode} ${appInfo.version.hashCode}');
+      // 比较版本号
       if(packageInfo.version.hashCode != appInfo.version.hashCode) {
         return true;
       }
@@ -121,11 +126,8 @@ class CheckUpdate {
           int progress = data[2];
           if(status == DownloadTaskStatus.complete) {
             // 更新弹窗提示，确认后进行安装
-            bool confirm = await _showDialog();
-            if(confirm) {
-              OpenFile.open('$_downloadPath/$_filename');
-              print('==============_installApkz: $_taskId  $_downloadPath /$_filename');
-            }
+            OpenFile.open('$_downloadPath/$_filename');
+            print('==============_installApkz: $_taskId  $_downloadPath /$_filename');
           }
         });
       FlutterDownloader.registerCallback(downloadCallback);
